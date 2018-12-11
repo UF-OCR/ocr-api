@@ -3,4 +3,4 @@ venv/
 .DS_Store
 config.properties
 api.key
-.pyc
+*.pyc
