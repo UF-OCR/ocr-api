@@ -1,0 +1,9 @@
+[DatabaseSection]
+username=
+password=
+hostname=
+port=
+sid=
+[Default]
+log_file=
+timeout=
