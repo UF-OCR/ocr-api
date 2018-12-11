@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from Models import init_database
 from Models import Protocols
 from Models import LogDetail
+from Models import Users
 import logging
 import ConfigParser
 
@@ -63,3 +64,19 @@ class DataProviderService:
         self.session.commit()
 
         return new_log_detail.log_details_id
+
+    def get_user(self, user_name):
+        """
+              If the user name parameter is  defined then it looks up the user in oncore table
+
+              :param user_name: The id of the user
+              :return: The user details.
+              """
+        if user_name:
+            user = self.session.query(Users).filter(user_name == Users.user_id).first()
+            return user
+        else:
+            return None
+
+
+

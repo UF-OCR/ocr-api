@@ -46,12 +46,20 @@ def require_app_key(view_function):
     def decorated_function(*args, **kwargs):
         with open('api.key', 'r') as api_key:
             key = api_key.read().replace('\n', '')
-            ip_address = request.environ['REMOTE_ADDR']
             user_name = request.headers.get('x-api-user')
+            if user_name:
+                user = DATA_PROVIDER.get_user(user_name)
+                if user and user.active_user_flag == 'Y':
+                    user_validated = 1
+                else:
+                    user_validated = 0
+            else:
+                abort(401)
             comp_key = request.headers.get('x-api-key')
+            ip_address = request.environ['REMOTE_ADDR']
             call_time = time.time()
             logging.info("Validating key " + comp_key)
-        if ip_address and user_name and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
+        if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
             logging.info("Validated")
             validated = 1
             new_log_details_id = DATA_PROVIDER.log_details(user_name, ip_address, call_time, validated)
@@ -72,7 +80,6 @@ def require_app_key(view_function):
                 logging.info("Logged")
             else:
                 logging.info("failed logging")
-
             abort(401)
 
     return decorated_function
