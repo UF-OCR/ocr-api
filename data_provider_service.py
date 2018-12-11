@@ -1,21 +1,65 @@
 from sqlalchemy import create_engine
-import cx_Oracle
+from sqlalchemy.orm import sessionmaker
+from Models import init_database
+from Models import Protocols
+from Models import LogDetail
+import logging
 import ConfigParser
 
 config = ConfigParser.RawConfigParser()
 config.read('config.properties')
+logging.basicConfig(filename=config.get('Default', 'log_file'), level=logging.DEBUG)
 
-oracle_connection_string = (
-        'oracle+cx_oracle://{username}:{password}@' +
-        cx_Oracle.makedsn('{hostname}', '{port}', sid='{sid}')
-)
 
-engine = create_engine(
-    oracle_connection_string.format(
-        username=config.get('DatabaseSection', 'username'),
-        password=config.get('DatabaseSection', 'password'),
-        hostname=config.get('DatabaseSection', 'hostname'),
-        port=config.get('DatabaseSection', 'port'),
-        sid=config.get('DatabaseSection', 'sid')
-    )
-)
+class DataProviderService:
+    def __init__(self, engine):
+        """
+        :param engine: The engine route and login details
+        :return: a new instance of DAL class
+        :type engine: string
+        """
+        if not engine:
+            raise ValueError('The values specified in engine parameter has to be supported by SQLAlchemy')
+        self.engine = engine
+        db_engine = create_engine(engine)
+        db_session = sessionmaker(bind=db_engine)
+        self.session = db_session()
+
+    def init_database(self):
+        """
+        Initializes the database tables and relationships
+        :return: None
+        """
+        init_database(self.engine)
+
+    def get_protocols(self):
+        """
+        Loads all the protocols
+
+        :return: The protocol_no.
+        """
+        all_protocols = self.session.query(Protocols.protocol_no).all()
+
+        return all_protocols
+
+    def log_details(self, user_name, ip_address, call_time, validated):
+        """
+
+               Creates and saves logFiles to the database.
+
+               :param user_name: user name recorded from the request
+               :param ip_address: ip address of the user
+               :param call_time: request call time
+               :param validated: record if user was validated
+
+               """
+        new_log_detail = LogDetail(
+            user_name=user_name,
+            call_time=call_time,
+            ip_address=ip_address,
+            validated=validated
+        )
+        self.session.add(new_log_detail)
+        self.session.commit()
+
+        return new_log_detail.log_details_id
