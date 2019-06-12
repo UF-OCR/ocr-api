@@ -1,6 +1,6 @@
 __all__ = ["LogDetail", "Protocols", "init_database"]
 
-from LogDetail import LogDetail
-from Protocols import Protocols
-from InitDB import init_database
-from Users import Users
+from Models.LogDetail import LogDetail
+from Models.Protocols import Protocols
+from Models.InitDB import init_database
+from Models.Users import Users

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-from Model import Model
+from Models.Model import Model
 
 
 class Protocols(Model):

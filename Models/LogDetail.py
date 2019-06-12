@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, TIMESTAMP
-from Model import Model
+from Models.Model import Model
 
 
 class LogDetail(Model):

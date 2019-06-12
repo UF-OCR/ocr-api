@@ -5,9 +5,9 @@ from Models import Protocols
 from Models import LogDetail
 from Models import Users
 import logging
-import ConfigParser
+import configparser
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('config.properties')
 logging.basicConfig(filename=config.get('Default', 'log_file'), level=logging.DEBUG)
 

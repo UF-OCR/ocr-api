@@ -3,28 +3,25 @@ from functools import wraps
 from flask import request, abort
 from werkzeug.contrib.cache import SimpleCache
 import logging
-import cx_Oracle
-import ConfigParser
+import configparser
 import json
 from data_provider_service import DataProviderService
 from flask import make_response
 import hashlib
+import datetime
 import time
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('config.properties')
 
 logging.basicConfig(filename=config.get('Default', 'log_file'), level=logging.DEBUG)
 
 cache = SimpleCache()
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('config.properties')
 
-oracle_connection_string = (
-        'oracle+cx_oracle://{username}:{password}@' +
-        cx_Oracle.makedsn('{hostname}', '{port}', sid='{sid}')
-)
+oracle_connection_string = 'oracle+cx_oracle://{username}:{password}@{hostname}:{port}/{sid}'
 
 db_engine = oracle_connection_string.format(
     username=config.get('DatabaseSection', 'username'),
@@ -56,8 +53,9 @@ def require_app_key(view_function):
             else:
                 abort(401)
             comp_key = request.headers.get('x-api-key')
-            ip_address = request.environ['REMOTE_ADDR']
-            call_time = time.time()
+            # ip_address = request.headers.getlist("X-Forwarded-For")[0]
+            ip_address = request.remote_addr
+            call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
             logging.info("Validating key " + comp_key)
         if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
             logging.info("Validated")
@@ -99,7 +97,7 @@ def get_ocr_protocols():
             cp = jsonify(data)
             cache.set('protocol-list', cp, timeout=config.getfloat('Default', 'timeout'))
             response = make_response(cp, 200)
-            response.headers["ETag"] = str(hashlib.sha256(json_data).hexdigest())
+            # response.headers["ETag"] = str(hashlib.sha256(json_data).hexdigest())
             response.headers["Cache-Control"] = "private, max-age=300"
             return response
         else:
