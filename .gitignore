@@ -3,4 +3,6 @@ venv/
 .DS_Store
 config.properties
 api.key
+*.log
 *.pyc
+logs/

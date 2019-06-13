@@ -3,32 +3,26 @@ from functools import wraps
 from flask import request, abort
 from werkzeug.contrib.cache import SimpleCache
 import logging
-import configparser
 import json
 from data_provider_service import DataProviderService
 from flask import make_response
 import hashlib
 import datetime
 import time
+import os
 
-config = configparser.RawConfigParser()
-config.read('config.properties')
-
-logging.basicConfig(filename=config.get('Default', 'log_file'), level=logging.DEBUG)
+logging.basicConfig(filename=os.environ.get('log_file', None), level=logging.DEBUG)
 
 cache = SimpleCache()
-
-config = configparser.RawConfigParser()
-config.read('config.properties')
 
 oracle_connection_string = 'oracle+cx_oracle://{username}:{password}@{hostname}:{port}/{sid}'
 
 db_engine = oracle_connection_string.format(
-    username=config.get('DatabaseSection', 'username'),
-    password=config.get('DatabaseSection', 'password'),
-    hostname=config.get('DatabaseSection', 'hostname'),
-    port=config.get('DatabaseSection', 'port'),
-    sid=config.get('DatabaseSection', 'sid')
+    username=os.environ.get('username', None),
+    password=os.environ.get('password', None),
+    hostname=os.environ.get('hostname', None),
+    port=os.environ.get('port', 0),
+    sid=os.environ.get('sid', None)
 )
 
 DATA_PROVIDER = DataProviderService(db_engine)
@@ -53,7 +47,6 @@ def require_app_key(view_function):
             else:
                 abort(401)
             comp_key = request.headers.get('x-api-key')
-            # ip_address = request.headers.getlist("X-Forwarded-For")[0]
             ip_address = request.remote_addr
             call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
             logging.info("Validating key " + comp_key)
@@ -93,11 +86,9 @@ def get_ocr_protocols():
         protocols_list = DATA_PROVIDER.get_protocols()
         if protocols_list:
             data = {"protocols": protocols_list, "total": len(protocols_list)}
-            json_data = json.dumps(data)
             cp = jsonify(data)
-            cache.set('protocol-list', cp, timeout=config.getfloat('Default', 'timeout'))
+            cache.set('protocol-list', cp, timeout=int(os.environ.get('timeout', 0)))
             response = make_response(cp, 200)
-            # response.headers["ETag"] = str(hashlib.sha256(json_data).hexdigest())
             response.headers["Cache-Control"] = "private, max-age=300"
             return response
         else:
