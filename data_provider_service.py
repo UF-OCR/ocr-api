@@ -5,12 +5,10 @@ from Models import Protocols
 from Models import LogDetail
 from Models import Users
 import logging
-import configparser
+import os
 
-config = configparser.RawConfigParser()
-config.read('config.properties')
-logging.basicConfig(filename=config.get('Default', 'log_file'), level=logging.DEBUG)
 
+logging.basicConfig(filename=os.environ.get('log_file', None), level=logging.DEBUG)
 
 class DataProviderService:
     def __init__(self, engine):
