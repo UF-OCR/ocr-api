@@ -37,7 +37,7 @@ class DataProviderService:
 
         :return: The protocol_no.
         """
-        all_protocols = self.session.query(Protocols.protocol_no).all()
+        all_protocols = self.session.query(Protocols.protocol_no,Protocols.title).all()
 
         return all_protocols
 

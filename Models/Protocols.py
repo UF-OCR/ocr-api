@@ -7,3 +7,4 @@ class Protocols(Model):
     __table_args__ = {"schema": "oncore"}
     protocol_id = Column(Integer, primary_key=True, nullable=False)
     protocol_no = Column(String, nullable=False)
+    title = Column(String, nullable=False)

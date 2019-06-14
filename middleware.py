@@ -35,21 +35,20 @@ def require_app_key(view_function):
     @wraps(view_function)
     # the new, post-decoration function. Note *args and **kwargs here.
     def decorated_function(*args, **kwargs):
-        with open('api.key', 'r') as api_key:
-            key = api_key.read().replace('\n', '')
-            user_name = request.headers.get('x-api-user')
-            if user_name:
-                user = DATA_PROVIDER.get_user(user_name)
-                if user and user.active_user_flag == 'Y':
-                    user_validated = 1
-                else:
-                    user_validated = 0
+        key = os.environ.get('api_key', None)
+        user_name = request.headers.get('x-api-user')
+        if user_name:
+            user = DATA_PROVIDER.get_user(user_name)
+            if user and user.active_user_flag == 'Y':
+                user_validated = 1
             else:
-                abort(401)
-            comp_key = request.headers.get('x-api-key')
-            ip_address = request.remote_addr
-            call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
-            logging.info("Validating key " + comp_key)
+                user_validated = 0
+        else:
+            abort(401)
+        comp_key = request.headers.get('x-api-key')
+        ip_address = request.remote_addr
+        call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
+        logging.info("Validating key " + comp_key)
         if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
             logging.info("Validated")
             validated = 1
