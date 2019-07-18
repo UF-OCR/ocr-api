@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/161347743.svg)](https://zenodo.org/badge/latestdoi/161347743)
+
 # Change Log
 All notable changes to the OCR API will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
