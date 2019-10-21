@@ -35,7 +35,8 @@ def require_app_key(view_function):
     @wraps(view_function)
     # the new, post-decoration function. Note *args and **kwargs here.
     def decorated_function(*args, **kwargs):
-        key = os.environ.get('api_key', None)
+        key = os.environ.get('api_key_1', None)
+        user = os.environ.get('api_user_1', None)
         user_name = request.headers.get('x-api-user')
         if user_name:
             user = DATA_PROVIDER.get_user(user_name)
@@ -49,7 +50,7 @@ def require_app_key(view_function):
         ip_address = request.remote_addr
         call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
         logging.info("Validating key " + comp_key)
-        if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
+        if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key and request.headers.get('x-api-user') and request.headers.get('x-api-user') == user :
             logging.info("Validated")
             validated = 1
             new_log_details_id = DATA_PROVIDER.log_details(user_name, ip_address, call_time, validated)
