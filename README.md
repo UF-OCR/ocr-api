@@ -92,7 +92,7 @@ This image is based on the given stable version
 
 `hkoranne/ocr_api:develop`
 
-This image is based on the current state and is used to test out the developments before published
+This image is based on the current state and is used to test out the developments before publishing
 
 
 ## Implementation and Maintenance
