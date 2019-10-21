@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 mkdir /opt/oracle
-mkdir /opt/oracle/instantclient
+mkdir /opt/oracle/instantclient_12_1
 unzip /opt/data/ocr_api/oracle-instantclient/instantclient-basic-linux.x64-12.1.0.2.0.zip -d /opt/oracle
 unzip /opt/data/ocr_api/oracle-instantclient/instantclient-sdk-linux.x64-12.1.0.2.0.zip -d /opt/oracle
 ln -s /opt/oracle/instantclient_12_1/libclntsh.so.12.1 /opt/oracle/instantclient_12_1/libclntsh.so
