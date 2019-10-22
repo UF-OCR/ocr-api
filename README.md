@@ -64,7 +64,7 @@ In order to run API on https connection additional proxy settings might be requi
 
 ### Variables
 - your_env_file_location: the location of the environment file. This file includes all the required environmental variables
-- your_env_file_location: the location to the folder where you desire to volume the log files
+- your_log_file_dir: the location to the folder where you desire to volume the log files
 
 ### Environmental variables
 
