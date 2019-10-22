@@ -74,7 +74,7 @@ The following variables and required:
     - password: This variable is used to provide the OnCore database password
     - hostname: This variable is used to provide the OnCore database hostname
     - sid: This variable is used to provide the OnCore serviceid
-- Other variables
+- Other variables:
     - log_file: This variable is used to provide the log file location for the application.
     - timeout: This variable is used to provide the cache duration
     - api_user_1: This variable is used to provide the whitelisted username
