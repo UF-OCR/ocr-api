@@ -5,7 +5,7 @@ The API supports a get protocol operation that returns a list of protocol#s and 
 
 ## Architecture
 The REST-based API employs a design based on FLASK framework and utilizes Hypertext Transfer Protocol Secure (HTTPS) as the transport protocol. JSON is used as the data exchange format to ensure the communications. The OCR API is a stand-alone module and is deployed within your institutional server which has access to the OnCore database's.
- 
+
 ![ocr_api_architecture](img/overview.png)
 
 ## Security
@@ -45,7 +45,7 @@ Returns a list of protocol no, and title in a JSON format. Receives the header d
 ## Deployment
 
 Docker public image is available for the OCR-API. This image serves as an environment to execute OCR-API in the server you wish.
- 
+
 ### Prerequisites
 
 - Docker Engine >= 1.10.0
@@ -55,7 +55,7 @@ Docker public image is available for the OCR-API. This image serves as an enviro
 ### How to use this image
 `Note: The URL's point to the developer's image the global image will be updated soon`
 
-Run the below command to pull the image and run OCR API on your server. THE OCR API runs on http://localhost:5000 with the current directory as our workspace. The option of --env-file is added to provide the configured environmental variable's. 
+Run the below command to pull the image and run OCR API on your server. THE OCR API runs on http://localhost:5000 with the current directory as our workspace. The option of --env-file is added to provide the configured environmental variable's.
 
     # script to run the image
     docker run -p 5000:5000 --env-file {your_env_file_location} -v {your_log_file_dir}:$log_file hkoranne/ocr_api:latest
@@ -64,7 +64,7 @@ In order to run API on https connection additional proxy settings might be requi
 
 ### Variables
 - your_env_file_location: the location of the environment file. This file includes all the required environmental variables
-- your_env_file_location: the location to the folder where you desire to volume the log files
+- your_log_file_dir: the location to the folder where you desire to volume the log files
 
 ### Environmental variables
 
@@ -74,7 +74,7 @@ The following variables and required:
     - password: This variable is used to provide the OnCore database password
     - hostname: This variable is used to provide the OnCore database hostname
     - sid: This variable is used to provide the OnCore serviceid
-- Other variables
+- Other variables:
     - log_file: This variable is used to provide the log file location for the application.
     - timeout: This variable is used to provide the cache duration
     - api_user_1: This variable is used to provide the whitelisted username
@@ -92,14 +92,8 @@ This image is based on the given stable version
 
 `hkoranne/ocr_api:develop`
 
-This image is based on the current state and is used to test out the developments before published
+This image is based on the current state and is used to test out the developments before publishing
 
 
 ## Implementation and Maintenance
 The client application is developed, tested, and maintained by the customers. During OnCore upgrades time and resources need to be allocated to ensure the client applications and the OCR API workflows continue to work as expected.
-
-
-
-
-
-
