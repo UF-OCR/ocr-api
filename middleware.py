@@ -35,26 +35,26 @@ def require_app_key(view_function):
     @wraps(view_function)
     # the new, post-decoration function. Note *args and **kwargs here.
     def decorated_function(*args, **kwargs):
-        key = os.environ.get('api_key', None)
-        user_name = request.headers.get('x-api-user')
-        if user_name:
-            user = DATA_PROVIDER.get_user(user_name)
-            if user and user.active_user_flag == 'Y':
-                user_validated = 1
-            else:
-                user_validated = 0
-        else:
-            abort(401)
-        comp_key = request.headers.get('x-api-key')
+        logTable = os.environ.get('log_functionality', False)
+        tokens = os.environ.get('api_tokens', None)
+        tokens = json.loads(tokens)
+        username = request.headers.get('x-api-user')
+        key = request.headers.get('x-api-key')
+        password = None
+        if username in tokens:
+            password = tokens[username]
         ip_address = request.remote_addr
         call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
-        logging.info("Validating key " + comp_key)
-        if ip_address and user_validated == 1 and request.headers.get('x-api-key') and request.headers.get('x-api-key') == key:
+        logging.info("Validating key " + key)
+        if ip_address and key and password and key == password and username and tokens[username]:
             logging.info("Validated")
             validated = 1
-            new_log_details_id = DATA_PROVIDER.log_details(user_name, ip_address, call_time, validated)
+            if logTable:
+                new_log_details_id = DATA_PROVIDER.log_details(username, ip_address, call_time, validated)
+            else:
+                new_log_details_id = ip_address
             if new_log_details_id:
-                logging.info("Logged")
+                logging.info("Logged with"+str(new_log_details_id))
                 return view_function(*args, **kwargs)
             else:
                 #
@@ -65,11 +65,14 @@ def require_app_key(view_function):
                 abort(404)
         else:
             validated = 0
-            new_log_details_id = DATA_PROVIDER.log_details(user_name, ip_address, call_time, validated)
-            if new_log_details_id:
-                logging.info("Logged")
+            if logTable:
+                new_log_details_id = DATA_PROVIDER.log_details(username, ip_address, call_time, validated)
             else:
-                logging.info("failed logging")
+                new_log_details_id = ip_address
+            if new_log_details_id:
+                logging.info("Logged with"+str(new_log_details_id))
+            else:
+                logging.info("failed logging with"+str(new_log_details_id))
             abort(401)
 
     return decorated_function
