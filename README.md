@@ -53,12 +53,10 @@ Docker public image is available for the OCR-API. This image serves as an enviro
 - Access to the OnCore database servers
 
 ### How to use this image
-`Note: The URL's point to the developer's image the global image will be updated soon`
-
 Run the below command to pull the image and run OCR API on your server. THE OCR API runs on http://localhost:5000 with the current directory as our workspace. The option of --env-file is added to provide the configured environmental variable's.
 
     # script to run the image
-    docker run -p 5000:5000 --env-file {your_env_file_location} -v {your_log_file_dir}:$log_file hkoranne/ocr_api:latest
+    docker run -p 5000:5000 --env-file {your_env_file_location} -v {your_log_file_dir}:$log_file ufocr/ocr_api:latest
 
 In order to run API on https connection additional proxy settings might be required. Please contact your server administrator to verify if you can create a proxy on port 5000.
 
@@ -77,20 +75,19 @@ The following variables and required:
 - Other variables:
     - log_file: This variable is used to provide the log file location for the application.
     - timeout: This variable is used to provide the cache duration
-    - api_user_1: This variable is used to provide the whitelisted username
-    - api_key_1: This varaible is used to provide the key for the api_user_1
+    - api_tokens: This variable is used to provide the whitelisted username and their tokens in json format. Ex: {"username":"token"}
 
 ### Image variants
 
-`hkoranne/ocr_api:latest`
+`/ocr_api:latest`
 
 This image is based on the latest stable version
 
-`hkoranne/ocr_api:<version>`
+`ufocr/ocr_api:<version>`
 
 This image is based on the given stable version
 
-`hkoranne/ocr_api:develop`
+`ufocr/ocr_api:develop`
 
 This image is based on the current state and is used to test out the developments before publishing
 
