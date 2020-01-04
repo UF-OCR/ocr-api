@@ -1,4 +1,4 @@
-Flask==0.10.1
+Flask==1.0
 SQLAlchemy==0.7.1
 cx-oracle==5.3
 pandas
