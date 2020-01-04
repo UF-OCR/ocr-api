@@ -45,7 +45,7 @@ def require_app_key(view_function):
             password = tokens[username]
         ip_address = request.remote_addr
         call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
-        logging.info("Validating key " + key)
+        logging.info("Validating key " + str(key))
         if ip_address and key and password and key == password and username and tokens[username]:
             logging.info("Validated")
             validated = 1

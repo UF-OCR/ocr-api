@@ -17,30 +17,124 @@ The OCR API makes available the endpoint for the registered URL.
 
 ```
 • URI scheme: /api/{operation_name}
-• Consumes: application/json
-• Produces: application/json
-• Operation name: protocols
-• Headers: x-api-key(the secret key provided to the user)
-           x-api-user(User name)
+• Available operations: protocols, accruals and validateProtocol
+```
+## Operations
+
+### Protocols
+```
+GET /protocols
+Produces: application/json
 ```
 
-### Description:
+#### Description
 
 Returns a list of protocol no, and title in a JSON format. Receives the header data in JSON format. Authorizes the User via token based authentication. On success, prepares a JSON object with all the protocol # and titles available in OnCore. This object can be cached. The cache time is configurable and is discussed in detail under deployment session.
 
-
-### Response
+#### Response
 
 | Code | Description        |Schema                          |
 | ---- | ------------------ | ------------------------------ |
 | 200  | Protocol #'s, and titles | `<Protocols>`Array  |
 
-#### Protocols list
+##### Protocols list
 
 | Index| Description        |Schema                          |
 | ---- | ------------------ | ------------------------------ |
 |   0  | OnCore Protocol No.| String |
 |   1  | OnCore Title.| String |
+
+### validateProtocol
+```
+GET /validateProtocol/<protocol_no>
+Produces: boolean
+```
+#### Description
+Validates if the protocol is eligible to record the summary accruals data. This summary accrual import process
+only applies to studies that are eligible to record summary data (see Study Eligibility below).
+
+##### Study Eligibility:
+- The protocol’s SummaryAccrualInfo field should be set to ‘Y’
+
+### accruals
+```
+POST /accruals
+Consumes: application/json
+Produces: application/json
+```
+
+#### Description:
+
+Receives the accrual data, protocol no, and OnCore user credentials in JSON format. Authorizes the User via
+OnCore SOAP API. On success, transforms accrual data into summary accrual import format and imports the data
+into OnCore via SOAP API. Returns a protocol no, # of accruals successfully imported, # of accruals failed to import
+and a list of transaction messages for each summary accrual data sent in a JSON format.
+
+#### Parameters
+| Name               |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| Credentials* | OnCore username and password used for authentication|Credentials |
+| Protocol No* | UF Protocol No.(UF OCR#) | string|
+| Accrual Data* | Accrual records of the Protocol | <AccrualData> array|
+
+#### Credentials
+| Name               |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| Username* | OnCore username| string |
+| Password* | OnCore password| string|
+
+#### AccrualData
+| Name               |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| On Study Date* | On study date of the accrual| datetime |
+| Institution | Recruited institution of the accrual. Defaulted to “University of Florida”| string|
+| Gender | OnCore Gender mapped value| string|
+| Date of Birth| DOB of the accrual| datetime|
+| Age at enrollment| Age of the accrual| integer
+|Ethnicity| OnCore ethnicity mapped value| string
+|Race| OnCore race mapped value| string
+|Disease Site| OnCore disease site mapped value| string
+|First Name| Recruited Staff First Name|string
+|Last Name| Recruited Staff Last Name|string
+|Email Address| Recruited Staff Email Address|string
+|ZipCode| Accruals recruited zipcode|integer
+
+#### Response
+| HTTP CODE               |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| 200 | Import details for the protocol provided| accrualImportDetails |
+
+#### AccrualImportDetails
+| Name              |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| protocol_no | The protocol # of the accrual data | string |
+| success_records | # of accrual data successfully imported| <TransactionMessages>array|
+| error_records| # of accrual data failed to import| <TransactionMessages>array|
+| total_accruals| # of successful accruals| integer|
+
+#### TransactionMessages
+| Name              |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| from_date | The first date of the month of on study date | string |
+| thru_date | The last date of the month of on study date | string |
+|institution|Recruited at institution|string
+|internal_accrual_reporting_group|Type of accrual reporting group|string
+|gender|Gender value|string
+|age_group|Range of age|string
+|ethnicity|Ethnicity value|string
+|race|Race value|string
+|disease_site|Disease site value|string
+|recruited_by|Recruited by staff|JSON
+|zip_code|Recruited at zipcode|integer
+|accrual|Total # of accruals|integer
+|message|Message received from SOAP API|string
+
+#### recruited_by
+| Name              |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+|first_name|The first name of the recruited staff|string
+|last_name|The last name of the recruited staff|string
+|middle_name|The middle name of the recruited staff|string
 
 ## Deployment
 
