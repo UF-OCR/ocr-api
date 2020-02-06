@@ -128,8 +128,8 @@ def summary_accrual():
             ageGroup = ""
             if key[5] is not None and key[5]!="":
                 ageGroup = str(int(key[5])) + " - " + str(int(key[6]))
-            ethnicity = key[7]
-            race = key[8]
+            ethnicity = map_codes('ethnicity', key[7])
+            race = map_codes('race', key[8])
             diseaseSite = key[9]
             accrual = value['On Study Date*']
             key.append(accrual)
@@ -171,3 +171,25 @@ def summary_accrual():
         return jsonify({"total_accruals": total_summary_accurals,"protocol_no":protocol_no,"error_records": error,"success_records": success})
     except:
         abort(404, sys.exc_info()[1])
+
+def map_codes(field, value):
+    value = str(value)
+    if field == 'race':
+        mappings = {
+            '01': 'White',
+            '03': 'Black or African American',
+            '04': 'Native Hawaiian or Other Pacific Islander',
+            '05': 'Asian',
+            '06': 'American Indian or Alaska Native',
+            '07': 'Subject Refused',
+            '99': 'Unknown'
+        }
+    elif field == 'ethnicity':
+        mappings = {
+            '3': 'Subject Refused',
+            '1': 'Hispanic or Latino',
+            '2': 'Non-Hispanic',
+            '9': 'Unknown'
+        }
+
+    return mappings[value]
