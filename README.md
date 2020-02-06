@@ -60,6 +60,18 @@ only applies to studies that are eligible to record summary data (see Study Elig
 ##### Study Eligibility:
 - The protocol’s SummaryAccrualInfo field should be set to ‘Y’
 
+#### Response
+| HTTP CODE               |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| 200 | The protocol results provided| protocolDetails |
+
+#### protocolDetails
+| Name              |Description                     |Schema      |
+| ------------------ | ------------------------------ |------------|
+| protocol_no | The OCR protocol #  | string |
+| title | Title of the protocol|string|
+| accrual_info_only| open for summary accruals| boolean|
+
 ### accruals
 ```
 POST /accruals

@@ -12,7 +12,6 @@ from classes.client import initialize_client
 import json
 import pickle
 
-
 def validate_protocol(protocol_no):
     try:
         username = request.authorization["username"]
@@ -21,11 +20,11 @@ def validate_protocol(protocol_no):
         if client:
             with client.settings(strict=False, raw_response=False):
                 response = client.service.getProtocol(protocolNo=protocol_no, irbNo=xsd.SkipValue)
-                return str(response[0]['SummaryAccrualInfoOnly']=='Y')
+                response_json = {"protocol_no":response[0]['ProtocolNo'], "title":response[0]['Title'], "accrual_info_only":response[0]['SummaryAccrualInfoOnly']=='Y'}
+                return jsonify(response_json)
         return None
     except:
-        abort(404, sys.exc_info()[1])
-
+        abort(404,"Username/password is incorrect")
 
 def summary_accrual():
     try:
@@ -108,13 +107,13 @@ def summary_accrual():
         grouped_data = data.groupby(['from Date', 'thru Date', 'Institution', 'Internal Accrual Reporting Group', 'Gender', 'Start range',
                  'End range', 'Ethnicity', 'Race', 'Disease Site', 'First Name', 'Last Name', 'Email Address',
                  'Zip Code']).count()
-        # total_accruals = sum(grouped_data["On Study Date*"])
+
         client = initialize_client(username, password)
         if client:
             with client.settings(raw_response=True):
                 response = client.service.deleteSummaryAccrualInfo(ProtocolNo=protocol_no, FromDate=xsd.SkipValue,ThruDate=xsd.SkipValue,InternalAccrualReportingGroup=xsd.SkipValue, deleteAll=True)
-                if response.status_code == 401:
-                    return jsonify({"status":response.status_code, "error":"User is not authorized"})
+                if response.status_code == 401 or response.status_code == 500:
+                    return jsonify({"status":response.status_code, "error":"User not authorized for accrual updates on "+protocol_no})
         content = grouped_data.to_dict(orient="index")
         success = []
         error = []
