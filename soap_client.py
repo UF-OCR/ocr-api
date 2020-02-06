@@ -10,6 +10,7 @@ import sys
 from datetime import timedelta
 from classes.client import initialize_client
 import json
+import pickle
 
 
 def validate_protocol(protocol_no):
@@ -118,6 +119,7 @@ def summary_accrual():
         success = []
         error = []
         total_summary_accurals = 0
+        oncore_code_mappings = pickle.load(open('oncore_code_mappings.p', 'rb'))
         for key, value in content.items():
             key = list(key)
             fromDate = key[0]
@@ -130,7 +132,7 @@ def summary_accrual():
                 ageGroup = str(int(key[5])) + " - " + str(int(key[6]))
             ethnicity = map_codes('ethnicity', key[7])
             race = map_codes('race', key[8])
-            diseaseSite = key[9]
+            diseaseSite = map_codes('disease_site', key[9])
             accrual = value['On Study Date*']
             key.append(accrual)
             staffDict = {}
@@ -173,23 +175,9 @@ def summary_accrual():
         abort(404, sys.exc_info()[1])
 
 def map_codes(field, value):
-    value = str(value)
-    if field == 'race':
-        mappings = {
-            '01': 'White',
-            '03': 'Black or African American',
-            '04': 'Native Hawaiian or Other Pacific Islander',
-            '05': 'Asian',
-            '06': 'American Indian or Alaska Native',
-            '07': 'Subject Refused',
-            '99': 'Unknown'
-        }
-    elif field == 'ethnicity':
-        mappings = {
-            '3': 'Subject Refused',
-            '1': 'Hispanic or Latino',
-            '2': 'Non-Hispanic',
-            '9': 'Unknown'
-        }
-
-    return mappings[value]
+    # If provided data is a coded value for its respective field, 
+    # convert it to the description string, otherwise provide the raw value
+    try:
+        return oncore_code_mappings[field][str(value)]
+    except KeyError:
+        return value
