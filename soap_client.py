@@ -129,9 +129,9 @@ def summary_accrual():
             ageGroup = ""
             if key[5] is not None and key[5]!="":
                 ageGroup = str(int(key[5])) + " - " + str(int(key[6]))
-            ethnicity = map_codes('ethnicity', key[7])
-            race = map_codes('race', key[8])
-            diseaseSite = map_codes('disease_site', key[9])
+            ethnicity = map_codes(oncore_code_mappings, 'ethnicity', key[7])
+            race = map_codes(oncore_code_mappings, 'race', key[8])
+            diseaseSite = map_codes(oncore_code_mappings, 'disease_site', key[9])
             accrual = value['On Study Date*']
             key.append(accrual)
             staffDict = {}
@@ -173,7 +173,7 @@ def summary_accrual():
     except:
         abort(404, sys.exc_info()[1])
 
-def map_codes(field, value):
+def map_codes(oncore_code_mappings, field, value):
     # If provided data is a coded value for its respective field, 
     # convert it to the description string, otherwise provide the raw value
     try:
