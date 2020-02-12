@@ -102,6 +102,7 @@ and a list of transaction messages for each summary accrual data sent in a JSON 
 #### AccrualData
 | Name               |Description                     |Schema      |
 | ------------------ | ------------------------------ |------------|
+| id | Unique id of the accrual record| string |
 | On Study Date* | On study date of the accrual| datetime |
 | Institution | Recruited institution of the accrual. Defaulted to “University of Florida”| string|
 | Gender | OnCore Gender mapped value| string|
@@ -130,9 +131,10 @@ and a list of transaction messages for each summary accrual data sent in a JSON 
 
 #### TransactionMessages
 | Name              |Description                     |Schema      |
-| ------------------ | ------------------------------ |------------|
-| from_date | The first date of the month of on study date | string |
-| thru_date | The last date of the month of on study date | string |
+| ------------------ | ------------------------------ |------------
+| from_date | The first date of the month of on study date | string 
+| thru_date | The last date of the month of on study date | string 
+| id | list of grouped accrual id's | List<string> 
 |institution|Recruited at institution|string
 |internal_accrual_reporting_group|Type of accrual reporting group|string
 |gender|Gender value|string
