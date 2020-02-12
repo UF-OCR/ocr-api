@@ -1,7 +1,7 @@
 from flask import jsonify
 from functools import wraps
 from flask import request, abort
-from werkzeug.contrib.cache import SimpleCache
+from cachelib.simple import SimpleCache
 import logging
 import json
 from data_provider_service import DataProviderService

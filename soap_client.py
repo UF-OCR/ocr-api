@@ -103,10 +103,17 @@ def summary_accrual():
 
         data = data.fillna("")
 
+        data = data.drop(columns=["Date of Birth"])
 
-        grouped_data = data.groupby(['from Date', 'thru Date', 'Institution', 'Internal Accrual Reporting Group', 'Gender', 'Start range',
+        if "id" not in data:
+            data["id"] = data.index+1
+
+        group_columns = ['from Date', 'thru Date', 'Institution', 'Internal Accrual Reporting Group', 'Gender', 'Start range',
                  'End range', 'Ethnicity', 'Race', 'Disease Site', 'First Name', 'Last Name', 'Email Address',
-                 'Zip Code']).count()
+                 'Zip Code']
+
+        grouped_data_count = data.groupby(group_columns)['id'].count()
+        grouped_data = data.groupby(group_columns)['id'].agg(lambda x: x.tolist())
 
         client = initialize_client(username, password)
         if client:
@@ -114,12 +121,13 @@ def summary_accrual():
                 response = client.service.deleteSummaryAccrualInfo(ProtocolNo=protocol_no, FromDate=xsd.SkipValue,ThruDate=xsd.SkipValue,InternalAccrualReportingGroup=xsd.SkipValue, deleteAll=True)
                 if response.status_code == 401 or response.status_code == 500:
                     return jsonify({"status":response.status_code, "error":"User not authorized for accrual updates on "+protocol_no})
-        content = grouped_data.to_dict(orient="index")
+        content = grouped_data_count.to_dict()
         success = []
         error = []
         total_summary_accurals = 0
         oncore_code_mappings = pickle.load(open('oncore_code_mappings.p', 'rb'))
         for key, value in content.items():
+            id= grouped_data[key]
             key = list(key)
             fromDate = key[0]
             thruDate = key[1]
@@ -132,7 +140,7 @@ def summary_accrual():
             ethnicity = map_codes(oncore_code_mappings, 'ethnicity', key[7])
             race = map_codes(oncore_code_mappings, 'race', key[8])
             diseaseSite = map_codes(oncore_code_mappings, 'disease_site', key[9])
-            accrual = value['On Study Date*']
+            accrual = value
             key.append(accrual)
             staffDict = {}
             personTypeDict = {}
@@ -152,7 +160,7 @@ def summary_accrual():
                                                                      Gender=gender, Ethnicity=ethnicity,
                                                                      Race=race, RecruitedBy=staffDict, ZipCode=zipCode,
                                                                      Accrual=accrual)
-                    json_response = {"from_date": fromDate, "thru_date": thruDate, "instituition": instituition,
+                    json_response = {"id": id ,"from_date": fromDate, "thru_date": thruDate, "instituition": instituition,
                                      "internal_accrual_reporting_group": internalAccrualReportingGroup,
                                      "gender": gender, "age_group": ageGroup, "ethnicity": ethnicity, "race": race,
                                      "disease_site": diseaseSite, "recruited_by": personTypeDict, "zip_code": zipCode,

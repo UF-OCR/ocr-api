@@ -1,4 +1,4 @@
-Flask==1.0
+Flask==1.1
 SQLAlchemy==0.7.1
 cx-oracle==5.3
 pandas
@@ -7,3 +7,4 @@ numpy
 lxml==4.2.5
 zeep
 pickle-mixin
+cachelib
