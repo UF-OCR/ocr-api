@@ -128,6 +128,8 @@ and a list of transaction messages for each summary accrual data sent in a JSON 
 | success_records | # of accrual data successfully imported| <TransactionMessages>array|
 | error_records| # of accrual data failed to import| <TransactionMessages>array|
 | total_accruals| # of successful accruals| integer|
+| invalid_onstudy_rows| List of empty on study dates| List|
+| invalid_age_rows| List of invalid age| List|
 
 #### TransactionMessages
 | Name              |Description                     |Schema      |
