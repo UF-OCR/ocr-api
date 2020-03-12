@@ -18,7 +18,7 @@ def dump_pickle_to_json():
         mappings = pickle.load(pickle_file)
     with open('maps.json', 'w') as json_file:
         json.dump(mappings, json_file, indent=2)
-    print('Pickle file dumped to maps.json', 'Please make your updates there.\n', 'Once finished, run:', 'python update_pickle.py import', sep='\n')
+    print('Pickle file dumped to maps.json', 'Please make your updates there.\n', 'Once finished, run:', 'python update_pickle.py import\n')
 
 
 def main():
