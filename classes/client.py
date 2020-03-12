@@ -57,21 +57,13 @@ def process_data(client, accrual_data, protocol_no):
         data = pd.DataFrame(data=accrual_data)
         data.columns = map(str.lower, data.columns)
 
-        if "id" not in data:
+        if 'id' not in data:
                 data["id"] = data.index + 1
 
-        if 'on study date*' not in data:
-                return None, None, 0, None
+        if 'on study date' not in data:
+                return jsonify("On study date column missing")
 
-        # identify the empty on study rows
-        empty_onstudydate_rows = data[data['on study date*'] == ""].index
-
-        if len(empty_onstudydate_rows) > 0:
-                empty_onstudydate_records = data.loc[empty_onstudydate_rows,['id']].to_dict("records")
-        else:
-                empty_onstudydate_records = None
-
-        data['on study date*'] = pd.to_datetime(data['on study date*'])
+        data['on study date'] = pd.to_datetime(data['on study date'])
 
         if 'date of birth' not in data:
                 data['date of birth'] = ""
@@ -79,9 +71,9 @@ def process_data(client, accrual_data, protocol_no):
                         data['age at enrollment'] = data['age at enrollment'].fillna(0)
         else:
                 data['date of birth'] = pd.to_datetime(data['date of birth'])
-                data['date of birth'] = data['date of birth'].where(data['date of birth'] <= data['on study date*'],
+                data['date of birth'] = data['date of birth'].where(data['date of birth'] <= data['on study date'],
                                                                     data['date of birth'] - np.timedelta64(100, 'Y'))  # 2
-                ageAtEnrollment = (data['on study date*'] - data['date of birth']).astype('<m8[Y]')  # 3
+                ageAtEnrollment = (data['on study date'] - data['date of birth']).astype('<m8[Y]')  # 3
                 data['age at enrollment'] = ageAtEnrollment
 
         invalid_age_records = None
@@ -91,34 +83,29 @@ def process_data(client, accrual_data, protocol_no):
                 data['age at enrollment'] = data['age at enrollment'].astype(str)
                 data['age at enrollment'] = data['age at enrollment'].str.replace(r'[-+]?\.[0-9]*','')
                 data['age at enrollment'] = data['age at enrollment'].replace("",np.nan)
-                invalid_age_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=True, regex=True)==False].index
-                if len(invalid_age_rows) > 0:
-                        invalid_age_records = data.loc[invalid_age_rows,['id']].to_dict("records")
-                        empty_onstudydate_rows = empty_onstudydate_rows.union(invalid_age_rows)
-        # drop data
-        data = data.drop(empty_onstudydate_rows)
-
-        if len(data) <= 0:
-                return jsonify({"total_accruals": 0, "protocol_no": protocol_no, "error_records": None,
-                                "success_records": None, "invalid_onstudy_rows": empty_onstudydate_records,
-                                "invalid_age_rows": invalid_age_records})
-
-        if 'age at enrollment' in data:
                 numeric_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=False, regex=True)].index
-                ageAtEnrollment = data.loc[numeric_rows,['age at enrollment']]
+                ageAtEnrollment = data.loc[numeric_rows, ['age at enrollment']]
                 rangeStart = ageAtEnrollment.astype(int) // 10 * 10
                 rangeEnd = (ageAtEnrollment.astype(int) // 10 * 10) + 9
+                data['start range'] = rangeStart
+                data['end range'] = rangeEnd
+                invalid_age_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=True, regex=True) == False].index
+                if len(invalid_age_rows) > 0:
+                        data.loc[invalid_age_rows, ['start range']] = "out of range"
         else:
-                rangeStart = ""
-                rangeEnd = ""
+                data['start range'] = rangeStart
+                data['end range'] = rangeEnd
 
-        # add through and from range
-        data['start range'] = rangeStart
-        data['end range'] = rangeEnd
-        data['thru date'] = data['on study date*'] + pd.offsets.MonthEnd(0)
-        data['from date'] = data['thru date'] + pd.offsets.MonthBegin(-1)
-        data['thru date'] = data['thru date'].dt.strftime('%Y-%m-%d')
-        data['from date'] = data['from date'].dt.strftime('%Y-%m-%d')
+
+        # identify the non empty on study rows
+        onstudydate_rows = data[data['on study date'] != ""].index
+
+        if len(onstudydate_rows) > 0:
+                data['thru date'] = data.loc[onstudydate_rows, ['on study date']] + pd.offsets.MonthEnd(0)
+                data['from date'] = data['thru date'] + pd.offsets.MonthBegin(-1)
+                data['thru date'] = data['thru date'].dt.strftime('%Y-%m-%d')
+                data['from date'] = data['from date'].dt.strftime('%Y-%m-%d')
+
         data['thru date'] = data['thru date'].fillna("")
         data['from date'] = data['from date'].fillna("")
 
@@ -170,6 +157,7 @@ def process_data(client, accrual_data, protocol_no):
         grouped_data_count = data.groupby(group_columns)['id'].count()
         grouped_data = data.groupby(group_columns)['id'].agg(lambda x: x.tolist())
         content = grouped_data_count.to_dict()
+
         success = []
         error = []
         total_summary_accurals = 0
@@ -182,10 +170,13 @@ def process_data(client, accrual_data, protocol_no):
                 thruDate = key[1]
                 instituition = key[2]
                 internalAccrualReportingGroup = key[3]
-                gender = key[4]
+                gender = map_codes(oncore_code_mappings, 'gender', key[4])
                 ageGroup = ""
                 if key[5] is not None and key[5]!="":
-                    ageGroup = str(int(key[5])) + " - " + str(int(key[6]))
+                    if key[5] == "out of range":
+                            ageGroup = key[5]
+                    else:
+                        ageGroup = str(int(key[5])) + " - " + str(int(key[6]))
                 ethnicity = map_codes(oncore_code_mappings, 'ethnicity', key[7])
                 race = map_codes(oncore_code_mappings, 'race', key[8])
                 diseaseSite = map_codes(oncore_code_mappings, 'disease_site', key[9])
@@ -204,26 +195,35 @@ def process_data(client, accrual_data, protocol_no):
                                  "gender": gender, "age_group": ageGroup, "ethnicity": ethnicity, "race": race,
                                  "disease_site": diseaseSite, "recruited_by": personTypeDict, "zip_code": zipCode,
                                  "accrual": accrual}
-                if client:
-                        with client.settings(raw_response=False):
-                                response = client.service.saveSummaryAccrualInfo(ProtocolNo=protocol_no, FromDate=fromDate,
-                                                                                 ThruDate=thruDate, DiseaseSite=diseaseSite,
-                                                                                 Diagnosis=xsd.SkipValue,
-                                                                                 InternalAccrualReportingGroup=internalAccrualReportingGroup,
-                                                                                 AgeGroup=ageGroup, Institution=instituition,
-                                                                                 Gender=gender, Ethnicity=ethnicity,
-                                                                                 Race=race, RecruitedBy=staffDict, ZipCode=zipCode,
-                                                                                 Accrual=accrual)
-                                if response['message'] is not None:
-                                        json_response["soap_message"] = response['message']
-                                        total_summary_accurals += key[14]
-                                        success.append(json_response)
 
-                                if response['error'] is not None:
-                                        json_response["soap_message"] = response['error']
-                                        error.append(json_response)
+                json_response = validate_json(json_response)
 
-        return jsonify({"total_accruals": total_summary_accurals,"protocol_no":protocol_no,"error_records": error,"success_records": success,"invalid_onstudy_rows": empty_onstudydate_records, "invalid_age_rows": invalid_age_records})
+                error_cause = json_response["error_cause"]
+
+                if len(error_cause) == 0:
+                        if client:
+                                with client.settings(raw_response=False):
+                                        response = client.service.saveSummaryAccrualInfo(ProtocolNo=protocol_no, FromDate=fromDate,
+                                                                                         ThruDate=thruDate, DiseaseSite=diseaseSite,
+                                                                                         Diagnosis=xsd.SkipValue,
+                                                                                         InternalAccrualReportingGroup=internalAccrualReportingGroup,
+                                                                                         AgeGroup=ageGroup, Institution=instituition,
+                                                                                         Gender=gender, Ethnicity=ethnicity,
+                                                                                         Race=race, RecruitedBy=staffDict, ZipCode=zipCode,
+                                                                                         Accrual=accrual)
+                                        if response['message'] is not None:
+                                                json_response["soap_message"] = response['message']
+                                                total_summary_accurals += key[14]
+                                                success.append(json_response)
+
+                                        if response['error'] is not None:
+                                                json_response["soap_message"] = response['error']
+                                                error.append(json_response)
+                else:
+                        json_response["soap_message"] = ""
+                        error.append(json_response)
+
+        return jsonify({"total_accruals": total_summary_accurals,"protocol_no":protocol_no,"error_records": error,"success_records": success})
 
 def map_codes(oncore_code_mappings, field, value):
     # If provided data is a coded value for its respective field,
@@ -232,3 +232,17 @@ def map_codes(oncore_code_mappings, field, value):
         return oncore_code_mappings[field][str(value)]
     except KeyError:
         return value
+
+def validate_json(json_response):
+        error_cause = []
+        gender_values = os.environ.get('gender_values', None)
+        if json_response["from_date"] == "":
+                error_cause.append("on study date")
+        if json_response["age_group"] == "out of range":
+                error_cause.append("age at enrollment")
+        if json_response["gender"] != "":
+                if json_response["gender"] not in gender_values:
+                        error_cause.append("gender")
+        json_response["error_cause"] = error_cause
+        return json_response
+

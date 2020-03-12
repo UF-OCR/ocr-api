@@ -6,3 +6,4 @@ api.key
 *.log
 *.pyc
 logs/
+maps.json
