@@ -1,12 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from Models import init_database
-from Models import Protocols
-from Models import LogDetail
-from Models import Users
+from sqlalchemy import text
+from Models import init_database, Protocols, LogDetail, DiseaseDiagnosis, ProtocolStatus, ProtocolAccrual
 import logging
 import os
-
 
 logging.basicConfig(filename=os.environ.get('log_file', None), level=logging.DEBUG)
 
@@ -33,15 +30,19 @@ class DataProviderService:
 
     def get_protocols(self):
         """
-        Loads all the protocols
+                            Loads all the protocols
 
-        :return: The protocol_no.
-        """
-        all_protocols = self.session.query(Protocols.protocol_no,Protocols.title).all()
+                            :return: The protocol_no.
+                            """
+        try:
+            all_protocols = self.session.query(Protocols.protocol_no, Protocols.title).all()
+            return all_protocols
+        except:
+            self.session.rollback()
+            raise
 
-        return all_protocols
 
-    def log_details(self, user_name, ip_address, call_time, validated):
+    def log_details(self, user_name, ip_address, call_time, validated,op_type):
         """
 
                Creates and saves logFiles to the database.
@@ -52,29 +53,67 @@ class DataProviderService:
                :param validated: record if user was validated
 
                """
-        new_log_detail = LogDetail(
-            user_name=user_name,
-            call_time=call_time,
-            ip_address=ip_address,
-            validated=validated
-        )
-        self.session.add(new_log_detail)
-        self.session.commit()
+        try:
+            new_log_detail = LogDetail(
+                user_name=user_name,
+                call_time=call_time,
+                ip_address=ip_address,
+                validated=validated,
+                op_type=op_type
+            )
+            self.session.add(new_log_detail)
+            self.session.commit()
+            return new_log_detail.log_details_id
+        except:
+            self.session.rollback()
+            raise
 
-        return new_log_detail.log_details_id
-
-    def get_user(self, user_name):
+    def get_covid_protocols(self):
         """
-              If the user name parameter is  defined then it looks up the user in oncore table
+        Loads all the protocols
 
-              :param user_name: The id of the user
-              :return: The user details.
-              """
-        if user_name:
-            user = self.session.query(Users).filter(user_name == Users.user_id).first()
-            return user
-        else:
-            return None
+        :return: The protocol_no.
+        """
+        try:
+            covid_protocols = self.session.query(DiseaseDiagnosis.protocol_id).filter("U07.1" == DiseaseDiagnosis.code).all()
+            covid_protocols_result = {}
+            for x in covid_protocols:
+                if x[0] not in covid_protocols_result:
+                    covid_protocols_result[x[0]] = {}
+                protocol = self.session.query(Protocols).filter(x[0]  == Protocols.protocol_id).first()
+                if protocol:
+                    covid_protocols_result[x[0]]["protocol_no"] = protocol.protocol_no
+                    covid_protocols_result[x[0]]["phase"] = protocol.phase
+                    covid_protocols_result[x[0]]["nct_number"] = protocol.nct_number
+                    covid_protocols_result[x[0]]["title"] = protocol.title
+                protocol_status = self.session.query(ProtocolStatus).filter(x[0]  == ProtocolStatus.protocol_id).first()
+                if protocol_status:
+                    covid_protocols_result[x[0]]["status"] = protocol_status.status
+                accrual_summary = self.session.query(ProtocolAccrual).filter(x[0] == ProtocolAccrual.protocol_id).first()
+                if accrual_summary:
+                    covid_protocols_result[x[0]]["accruals"] = {}
+                    covid_protocols_result[x[0]]["accruals"]["consented_count"] = accrual_summary.consented_count
+                    covid_protocols_result[x[0]]["accruals"]["on_study_count"] = accrual_summary.on_study_count
+                    covid_protocols_result[x[0]]["accruals"]["on_treatment_count"] = accrual_summary.on_treatment_count
+                    covid_protocols_result[x[0]]["accruals"]["off_treatment_count"] = accrual_summary.off_treatment_count
+                    covid_protocols_result[x[0]]["accruals"]["on_follow_up_count"] = accrual_summary.on_follow_up_count
+                    covid_protocols_result[x[0]]["accruals"]["off_study_count"] = accrual_summary.off_study_count
+                    covid_protocols_result[x[0]]["accruals"]["expired_count"] = accrual_summary.expired_count
+                    covid_protocols_result[x[0]]["accruals"]["on_ltfu_count"] = accrual_summary.on_ltfu_count
+                    covid_protocols_result[x[0]]["accruals"]["not_eligible_count"] = accrual_summary.not_eligible_count
+
+            return covid_protocols_result
+        except:
+            self.session.rollback()
+            raise
+
+
+    def close_connection(self):
+        self.session.close();
+
+
+
+
 
 
 
