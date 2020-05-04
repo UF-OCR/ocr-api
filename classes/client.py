@@ -70,31 +70,38 @@ def process_data(client, accrual_data, protocol_no):
                 if 'age at enrollment' in data:
                         data['age at enrollment'] = data['age at enrollment'].fillna(0)
         else:
-                data['date of birth'] = pd.to_datetime(data['date of birth'])
-                data['date of birth'] = data['date of birth'].where(data['date of birth'] <= data['on study date'],
-                                                                    data['date of birth'] - np.timedelta64(100, 'Y'))  # 2
-                ageAtEnrollment = (data['on study date'] - data['date of birth']).astype('<m8[Y]')  # 3
-                data['age at enrollment'] = ageAtEnrollment
+                dob_na_len = len(data[data['date of birth'].isna()].index)
+                dob_len = len(data['date of birth'].index)
+                if dob_na_len != dob_len:
+                        data['date of birth'] = pd.to_datetime(data['date of birth'])
+                        data['date of birth'] = data['date of birth'].where(data['date of birth'] <= data['on study date'],
+                                                                            data['date of birth'] - np.timedelta64(100, 'Y'))  # 2
+                        ageAtEnrollment = (data['on study date'] - data['date of birth']).astype('<m8[Y]')  # 3
+                        data['age at enrollment'] = ageAtEnrollment
 
         invalid_age_records = None
         # identify out of range ages
+        data['start range'] = ""
+        data['end range'] = ""
         if 'age at enrollment' in data:
-                age_range_exp = os.environ.get('age_range', None)
-                data['age at enrollment'] = data['age at enrollment'].astype(str)
-                data['age at enrollment'] = data['age at enrollment'].str.replace(r'[-+]?\.[0-9]*','')
-                data['age at enrollment'] = data['age at enrollment'].replace("",np.nan)
-                numeric_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=False, regex=True)].index
-                ageAtEnrollment = data.loc[numeric_rows, ['age at enrollment']]
-                rangeStart = ageAtEnrollment.astype(int) // 10 * 10
-                rangeEnd = (ageAtEnrollment.astype(int) // 10 * 10) + 9
-                data['start range'] = rangeStart
-                data['end range'] = rangeEnd
-                invalid_age_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=True, regex=True) == False].index
-                if len(invalid_age_rows) > 0:
-                        data.loc[invalid_age_rows, ['start range']] = "out of range"
-        else:
-                data['start range'] = rangeStart
-                data['end range'] = rangeEnd
+                age_na_len = len(data[data['age at enrollment'].isna()].index)
+                age_len = len(data['age at enrollment'].index)
+                if age_na_len != age_len:
+                        age_range_exp = os.environ.get('age_range', None)
+                        data['age at enrollment'] = data['age at enrollment'].astype(str)
+                        data['age at enrollment'] = data['age at enrollment'].str.replace(r'[-+]?\.[0-9]*', '')
+                        data['age at enrollment'] = data['age at enrollment'].replace("", np.nan)
+                        numeric_rows = data[
+                                data['age at enrollment'].str.contains(str(age_range_exp), na=False, regex=True)].index
+                        ageAtEnrollment = data.loc[numeric_rows, ['age at enrollment']]
+                        rangeStart = ageAtEnrollment.astype(int) // 10 * 10
+                        rangeEnd = (ageAtEnrollment.astype(int) // 10 * 10) + 9
+                        data['start range'] = rangeStart
+                        data['end range'] = rangeEnd
+                        invalid_age_rows = data[data['age at enrollment'].str.contains(str(age_range_exp), na=True,
+                                                                                       regex=True) == False].index
+                        if len(invalid_age_rows) > 0:
+                                data.loc[invalid_age_rows, ['start range']] = "out of range"
 
 
         # identify the non empty on study rows
@@ -235,7 +242,7 @@ def map_codes(oncore_code_mappings, field, value):
 
 def validate_json(json_response):
         error_cause = []
-        gender_values = os.environ.get('gender_values', None)
+        gender_values = ['Male','Female','Unknown']
         if json_response["from_date"] == "":
                 error_cause.append("on study date")
         if json_response["age_group"] == "out of range":

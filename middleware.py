@@ -25,11 +25,13 @@ db_engine = oracle_connection_string.format(
     sid=os.environ.get('sid', None)
 )
 
-DATA_PROVIDER = DataProviderService(db_engine)
 
 
-# The actual decorator function
-
+def log_details(username, ip_address, call_time, validated,op_type):
+    DATA_PROVIDER = DataProviderService(db_engine)
+    log_details_id = DATA_PROVIDER.log_details(username, ip_address, call_time, validated, op_type)
+    DATA_PROVIDER.close_connection()
+    return log_details_id
 
 def require_app_key(view_function):
     @wraps(view_function)
@@ -50,7 +52,7 @@ def require_app_key(view_function):
             logging.info("Validated")
             validated = 1
             if logTable:
-                new_log_details_id = DATA_PROVIDER.log_details(username, ip_address, call_time, validated)
+                new_log_details_id = log_details(username, ip_address, call_time, validated,1)
             else:
                 new_log_details_id = ip_address
             if new_log_details_id:
@@ -66,7 +68,7 @@ def require_app_key(view_function):
         else:
             validated = 0
             if logTable:
-                new_log_details_id = DATA_PROVIDER.log_details(username, ip_address, call_time, validated)
+                new_log_details_id = log_details(username, ip_address, call_time, validated,1)
             else:
                 new_log_details_id = ip_address
             if new_log_details_id:
@@ -80,6 +82,7 @@ def require_app_key(view_function):
 
 @require_app_key
 def get_ocr_protocols():
+    DATA_PROVIDER = DataProviderService(db_engine)
     cp = cache.get('protocol-list')
     if cp is not None:
         logging.info("Cached result")
@@ -90,8 +93,33 @@ def get_ocr_protocols():
             data = {"protocols": protocols_list, "total": len(protocols_list)}
             cp = jsonify(data)
             cache.set('protocol-list', cp, timeout=int(os.environ.get('timeout', 0)))
+            DATA_PROVIDER.close_connection()
             response = make_response(cp, 200)
-            response.headers["Cache-Control"] = "private, max-age=300"
+            response.headers["Cache-Control"] = "private"
+            return response
+        else:
+            #
+            # In case we did not find any protocols i.e the server is down
+            # we send HTTP 404 - Not Found error to the client
+            #
+            abort(404)
+
+@require_app_key
+def get_covid_data():
+    cp = cache.get('covid-protocols')
+    if cp is not None:
+        logging.info("Cached result")
+        return cp
+    else:
+        DATA_PROVIDER = DataProviderService(db_engine)
+        protocols_list = DATA_PROVIDER.get_covid_protocols()
+        DATA_PROVIDER.close_connection()
+        if protocols_list:
+            data = {"covid-protocols": protocols_list, "total": len(protocols_list)}
+            cp = jsonify(data)
+            cache.set('covid-protocols', cp, timeout=int(os.environ.get('timeout', 0)))
+            response = make_response(cp, 200)
+            response.headers["Cache-Control"] = "private"
             return response
         else:
             #
