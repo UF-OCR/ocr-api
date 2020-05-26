@@ -76,18 +76,6 @@ Returns a list of COVID19 protocol numbers and enrollment details in a JSON form
 |   title  | OnCore Title.| String |
 |   accruals  | Enrollment details| `<AccrualCount>`JSON  |
 
-##### ProtocolDetails
-
-| Value| Description        |Schema                          |
-| ---- | ------------------ | ------------------------------ |
-|   irb_no  | OnCore IRB#| String |
-|   nct_number  | CTGOV NCT#| String |
-|   phase  | OnCore phase value| String |
-|   protocol_no  | OnCore Protocol No.| String |
-|   status  | OnCore protocol status value| String |
-|   title  | OnCore Title.| String |
-|   accruals  | Enrollment details| `<AccrualCount>`JSON  |
-
 ##### AccrualCount
 
 | Value| Description        |Schema                          |
