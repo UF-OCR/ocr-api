@@ -1,6 +1,5 @@
 from sqlalchemy import Column, String, Integer, TIMESTAMP
-from Models.Model import Model
-
+from models.Model import Model
 
 class LogDetail(Model):
     __tablename__ = 'log_details'

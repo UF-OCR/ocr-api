@@ -48,6 +48,47 @@ Returns a list of protocol numbers and titles in a JSON format. Receives the hea
 |   0  | OnCore Protocol No.| String |
 |   1  | OnCore Title.| String |
 
+### COVID19 Protocols
+```
+GET /covid
+Produces: application/json
+```
+
+#### Description
+
+Returns a list of COVID19 protocol numbers and enrollment details in a JSON format. Receives the header data in JSON format. Authorizes the User via token based authentication. On success, prepares a JSON object with all the protocol numbers and enrollment detail available in OnCore. This object can be cached. The cache time is configurable and is discussed in detail in the _Deployment_ section.
+
+#### Response
+
+| Code | Description        |Schema                          |
+| ---- | ------------------ | ------------------------------ |
+| 200  | Protocol details | `<ProtocolDetails>`JSON  |
+
+##### ProtocolDetails list
+
+| Value| Description        |Schema                          |
+| ---- | ------------------ | ------------------------------ |
+|   irb_no  | OnCore IRB#| String |
+|   nct_number  | CTGOV NCT#| String |
+|   phase  | OnCore phase value| String |
+|   protocol_no  | OnCore Protocol No.| String |
+|   status  | OnCore protocol status value| String |
+|   title  | OnCore Title.| String |
+|   accruals  | Enrollment details| `<AccrualCount>`JSON  |
+
+##### AccrualCount
+
+| Value| Description        |Schema                          |
+| ---- | ------------------ | ------------------------------ |
+|   consented_count  | consented enrollment count| integer |
+|   expired_count  |  expired enrollment count| integer |
+|   not_eligible_count  | enrollment not eligible count| integer |
+|   off_study_count  | off study enrollment count| integer |
+|   on_follow_up_count  | on followup enrollment counte| integer |
+|   off_treatment_count  | off treatment enrollment count| integer |
+|   on_ltfu_count  | on ltfu enrollment count| integer |
+|   on_treatment_count  | on treatment enrollment count| integer |
+
 ### validateProtocol
 ```
 GET /validateProtocol/<protocol_no>

@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine,text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
-from Models import init_database, Protocols, LogDetail, DiseaseDiagnosis, ProtocolStatus, ProtocolAccrual
+from sqlalchemy.pool import NullPool
+from models import Protocols, LogDetail, DiseaseDiagnosis, ProtocolStatus, ProtocolAccrual
 import logging
 import os
 
@@ -17,16 +17,10 @@ class DataProviderService:
         if not engine:
             raise ValueError('The values specified in engine parameter has to be supported by SQLAlchemy')
         self.engine = engine
-        db_engine = create_engine(engine)
+        db_engine = create_engine(engine,poolclass=NullPool)
         db_session = sessionmaker(bind=db_engine)
         self.session = db_session()
-
-    def init_database(self):
-        """
-        Initializes the database tables and relationships
-        :return: None
-        """
-        init_database(self.engine)
+        logging.info("Opening connection")
 
     def get_protocols(self):
         """
@@ -89,6 +83,7 @@ class DataProviderService:
                 protocol_status = self.session.query(ProtocolStatus).filter(x[0]  == ProtocolStatus.protocol_id).first()
                 if protocol_status:
                     covid_protocols_result[x[0]]["status"] = protocol_status.status
+                    covid_protocols_result[x[0]]["irb_no"] = protocol_status.irb_no
                 accrual_summary = self.session.query(ProtocolAccrual).filter(x[0] == ProtocolAccrual.protocol_id).first()
                 if accrual_summary:
                     covid_protocols_result[x[0]]["accruals"] = {}
@@ -101,15 +96,15 @@ class DataProviderService:
                     covid_protocols_result[x[0]]["accruals"]["expired_count"] = accrual_summary.expired_count
                     covid_protocols_result[x[0]]["accruals"]["on_ltfu_count"] = accrual_summary.on_ltfu_count
                     covid_protocols_result[x[0]]["accruals"]["not_eligible_count"] = accrual_summary.not_eligible_count
-
             return covid_protocols_result
         except:
             self.session.rollback()
             raise
 
-
     def close_connection(self):
-        self.session.close();
+        if self.session is not None:
+            self.session.close()
+            logging.info("Closing connection")
 
 
 

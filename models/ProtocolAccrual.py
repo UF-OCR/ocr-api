@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-from Models.Model import Model
+from models.Model import Model
 
 class ProtocolAccrual(Model):
     __tablename__ = 'sv_pcl_accrual'

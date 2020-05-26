@@ -12,3 +12,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.0.1] - 2020-01-02
 ### Summary
 - Added new operations that prepares accrual data for summary accruals import into OnCore
+
+## [1.0.2] - 2020-01-02
+### Summary
+- Added new operation to return covid protocols
+- Added log table feature
