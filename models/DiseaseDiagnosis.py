@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-from Models.Model import Model
+from models.Model import Model
 
 class DiseaseDiagnosis(Model):
     __tablename__ = 'sv_pcl_disease_diagnosis'

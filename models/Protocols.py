@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-from Models.Model import Model
+from models.Model import Model
 
 class Protocols(Model):
     __tablename__ = 'sv_pcl_details'

@@ -1,5 +1,5 @@
-Flask==1.1
-SQLAlchemy==0.7.1
+Flask
+SQLAlchemy==0.8.0
 cx-oracle==5.3
 pandas
 xlrd >= 1.0.0
