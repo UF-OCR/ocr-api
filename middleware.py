@@ -1,4 +1,5 @@
 from flask import jsonify
+from flask import Response
 from functools import wraps
 from flask import request, abort
 from cachelib.simple import SimpleCache
@@ -98,3 +99,6 @@ def get_covid_data():
             # we send HTTP 404 - Not Found error to the client
             #
             abort(404)
+
+def health():
+    return Response("Healthy", status=200, mimetype='application/json')

@@ -17,3 +17,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Summary
 - Added new operation to return covid protocols
 - Added log table feature
+
+## [1.0.3] - 2021-03-02
+### Summary
+- Added new route to check the health of the application
