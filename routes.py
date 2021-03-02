@@ -1,4 +1,4 @@
-from middleware import get_ocr_protocols, get_covid_data
+from middleware import get_ocr_protocols, get_covid_data, health
 from soap_client import validate_protocol, summary_accrual
 
 def init_api_routes(app):
@@ -7,3 +7,4 @@ def init_api_routes(app):
          app.add_url_rule('/api/covid', 'get_covid_data', get_covid_data, methods=['GET'])
          app.add_url_rule('/api/oncore/validateProtocol/<protocol_no>', 'validate_protocol', validate_protocol, methods=['GET'])
          app.add_url_rule('/api/oncore/accruals', 'summary_accrual', summary_accrual, methods=['POST'])
+         app.add_url_rule('/health', 'health', health, methods=['GET'])
