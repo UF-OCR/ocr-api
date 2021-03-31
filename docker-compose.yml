@@ -1,0 +1,19 @@
+version: "3.5"
+services:
+  ocr_api:
+    container_name: ${container_name}
+    image: ${image}:${tag}
+    restart: unless-stopped
+    env_file:
+      - ${env_file}
+    ports:
+      - ${ports}
+    volumes:
+      - ${log_output_volume}:${docker_log_location}
+    healthcheck:
+      test: curl --fail -s ${health_check} || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    stdin_open: true
+    tty: true
