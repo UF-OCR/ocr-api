@@ -1,0 +1,6 @@
+#
+# Oracle SQLcl Build numbers
+#
+RELEASE=21.2.0
+JULIAN_BUILD_VERSION=21.2.0.174.2245
+LATEST_BUILD=sqlcl-21.2.0-174.2245

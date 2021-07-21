@@ -16,14 +16,12 @@ logging.basicConfig(filename=os.environ.get('log_file', None), level=logging.DEB
 
 cache = SimpleCache()
 
-oracle_connection_string = 'oracle+cx_oracle://{username}:{password}@{hostname}:{port}/{sid}'
+oracle_connection_string = 'oracle+cx_oracle://{username}:{password}@{tns_name}'
 
 db_engine = oracle_connection_string.format(
-    username=os.environ.get('username', None),
-    password=os.environ.get('password', None),
-    hostname=os.environ.get('hostname', None),
-    port=os.environ.get('port', 0),
-    sid=os.environ.get('sid', None)
+    username=os.environ.get('ORACLE_USERNAME', None),
+    password=os.environ.get('ORACLE_PASSWORD', None),
+    tns_name=os.environ.get('ORACLE_TNS_NAME', None)
 )
 
 def log_details(username, validated, op_type):

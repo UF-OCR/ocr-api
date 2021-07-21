@@ -1,9 +1,10 @@
+import os
 from sqlalchemy import Column, String, Integer
 from models.Model import Model
 
 class ProtocolAccrual(Model):
     __tablename__ = 'sv_pcl_accrual'
-    __table_args__ = {"schema": "oncore"}
+    __table_args__ = {"schema": os.environ.get('ORACLE_CURRENT_SCHEMA', None)}
     protocol_id = Column(Integer, primary_key=True, nullable=False)
     consented_count = Column(Integer, nullable=True)
     on_study_count= Column(Integer, nullable=True)
@@ -14,4 +15,3 @@ class ProtocolAccrual(Model):
     expired_count = Column(Integer, nullable=True)
     on_ltfu_count = Column(Integer, nullable=True)
     not_eligible_count = Column(Integer, nullable=True)
-

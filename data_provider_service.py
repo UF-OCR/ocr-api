@@ -18,6 +18,7 @@ class DataProviderService:
             raise ValueError('The values specified in engine parameter has to be supported by SQLAlchemy')
         self.engine = engine
         db_engine = create_engine(engine,poolclass=NullPool)
+
         db_session = sessionmaker(bind=db_engine)
         self.session = db_session()
         logging.info("Opening connection")
@@ -105,10 +106,3 @@ class DataProviderService:
         if self.session is not None:
             self.session.close()
             logging.info("Closing connection")
-
-
-
-
-
-
-
