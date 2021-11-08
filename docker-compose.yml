@@ -5,10 +5,14 @@ services:
     image: ${image}:${tag}
     restart: unless-stopped
     env_file:
+      - ../../app-credentials/oracle-credentials.env
+      - ../../app-credentials/ocr-database.env
+      - ../../app-credentials/api-credentials.env
       - ${env_file}
     ports:
       - ${ports}
     volumes:
+      - ../../app-credentials/oracle-wallet:/usr/lib/oracle/19.11/client64/lib/network/admin
       - ${log_output_volume}:${docker_log_location}
     healthcheck:
       test: curl --fail -s ${health_check} || exit 1
