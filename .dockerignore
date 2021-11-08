@@ -1,6 +1,9 @@
 .DS_Store
 __pycache__/
 venv/
+env_files/
+env_files/credentials.env
 docker-compose.yml
 Dockerfile
+.env
 

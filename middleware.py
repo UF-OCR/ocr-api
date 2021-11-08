@@ -18,18 +18,26 @@ cache = SimpleCache()
 
 oracle_connection_string = 'oracle+cx_oracle://{username}:{password}@{hostname}:{port}/{sid}'
 
-db_engine = oracle_connection_string.format(
-    username=os.environ.get('username', None),
-    password=os.environ.get('password', None),
-    hostname=os.environ.get('hostname', None),
-    port=os.environ.get('port', 0),
-    sid=os.environ.get('sid', None)
+oracle_wallet_connection_string = 'oracle+cx_oracle://{username}:{password}@{tns_name}'
+
+wallet_db_engine = oracle_wallet_connection_string.format(
+    username=os.environ.get('ORACLE_USERNAME', None),
+    password=os.environ.get('ORACLE_PASSWORD', None),
+    tns_name=os.environ.get('ORACLE_TNS_NAME', None)
+)
+
+op_db_engine = oracle_connection_string.format(
+    username=os.environ.get('ON_PREMISE_USERNAME', None),
+    password=os.environ.get('ON_PREMISE_PASSWORD', None),
+    hostname=os.environ.get('ON_PREMISE_HOSTNAME', None),
+    port=os.environ.get('ON_PREMISE_PORT', 0),
+    sid=os.environ.get('ON_PREMISE_SID', None)
 )
 
 def log_details(username, validated, op_type):
     call_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
     ip_address = request.remote_addr
-    data_provider = DataProviderService(db_engine)
+    data_provider = DataProviderService(wallet_db_engine, op_db_engine)
     log_details_id = data_provider.log_details(username, ip_address, call_time, validated, op_type)
     data_provider.close_connection()
     return log_details_id
@@ -59,7 +67,7 @@ def get_ocr_protocols():
         logging.info("Cached result")
         return cp
     else:
-        data_provider = DataProviderService(db_engine)
+        data_provider = DataProviderService(wallet_db_engine, op_db_engine)
         protocols_list = data_provider.get_protocols()
         data_provider.close_connection()
         if protocols_list:
@@ -83,7 +91,7 @@ def get_covid_data():
         logging.info("Cached result")
         return cp
     else:
-        data_provider = DataProviderService(db_engine)
+        data_provider = DataProviderService(wallet_db_engine, op_db_engine)
         protocols_list = data_provider.get_covid_protocols()
         data_provider.close_connection()
         if protocols_list:

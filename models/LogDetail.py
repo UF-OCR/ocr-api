@@ -1,9 +1,10 @@
+import os
 from sqlalchemy import Column, String, Integer, TIMESTAMP
 from models.Model import Model
 
 class LogDetail(Model):
     __tablename__ = 'log_details'
-    __table_args__ = {"schema": "ufapi"}
+    __table_args__ = {"schema": os.environ.get('ON_PREMISE_SCHEMA', None)}
     log_details_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_name = Column(String(511))
     call_time = Column(TIMESTAMP)

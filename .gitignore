@@ -7,3 +7,6 @@ api.key
 *.pyc
 logs/
 maps.json
+env_files/
+env_files/credentials.env
+*.env

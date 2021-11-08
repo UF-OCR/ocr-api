@@ -1,31 +1,34 @@
-# INSTALL PYTHON IMAGE
-FROM python:3.6
-MAINTAINER Harshita "hkoranne@ufl.edu"
+FROM oraclelinux:7-slim
+MAINTAINER Christopher "cshannon@ufl.edu"
 
-# INSTALL TOOLS
-RUN apt-get update \
-    && apt-get -y install unzip \
-    && apt-get -y install libaio-dev \
-    && apt-get -y install sudo \
-    && mkdir -p /opt/data/ocr_api
+# INSTALL ORACLE DEPENDENCIES
+RUN yum -y install oracle-release-el7 oraclelinux-developer-release-el7 && \
+    yum -y install java-11-openjdk-devel && \
+    yum -y install python3 \
+                   python3-libs \
+                   python3-pip \
+                   python3-setuptools
+                   
+RUN yum -y install oracle-instantclient19.11-basic
 
+RUN rm -rf /var/cache/yum/*
 
-ADD . /opt/data/ocr_api
-WORKDIR /opt/data/ocr_api
+RUN mkdir /oracle_wallet
 
-ENV ORACLE_HOME=/opt/oracle/instantclient_12_1
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
+# COPY APP AND LOCAL DEPENDENCIES
+COPY . /app
 
-ENV OCI_HOME=/opt/oracle/instantclient_12_1
-ENV OCI_LIB_DIR=/opt/oracle/instantclient_12_1
-ENV OCI_INCLUDE_DIR=/opt/oracle/instantclient_12_1/sdk/include
+# CONFIGURE SQLCL
+RUN mv /app/sqlcl /usr/bin/
+ENV SQLCL_HOME="/usr/bin/sqlcl/"
 
-RUN chmod +x ./install-instantclient.sh
+# CONFIGURE JAVA CLASSPATH
+ENV CLASSPATH=${SQLCL_HOME}/lib/oraclepki.jar:${SQLCL_HOME}/lib/osdt_core.jar:${SQLCL_HOME}/lib/osdt_cert.jar
 
-# INSTALL INSTANTCLIENT AND DEPENDENCIES
-RUN ./install-instantclient.sh \
-    && pip install -r requirements.txt
+WORKDIR /app
+RUN pip3 install -r /app/requirements.txt
 
 EXPOSE 5000
 
-CMD ["python","/opt/data/ocr_api/app.py"]
+CMD ["/bin/bash", "/app/start_app.sh"]
+
